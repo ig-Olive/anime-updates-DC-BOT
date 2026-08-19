@@ -1,5 +1,4 @@
 import os
-from email import message
 
 from dotenv import load_dotenv
 

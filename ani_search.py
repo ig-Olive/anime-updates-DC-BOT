@@ -18,7 +18,7 @@ query ($search: String) {
 }
 '''
 
-get_schedule = '''query ($id: Int){ 
+get_schedule = '''uery ($id: Int){ 
   Media (id: $id, type: ANIME) { 
     id
     title {

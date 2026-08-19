@@ -1,4 +1,6 @@
 import os
+from email import message
+
 from dotenv import load_dotenv
 
 import discord
@@ -49,8 +51,6 @@ async def on_command_error(ctx, error):
     else:
         await ctx.send("An unexpected error occurred.")
         print(error)
-
-#INFO
 
 
 

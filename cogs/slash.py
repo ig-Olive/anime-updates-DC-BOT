@@ -17,7 +17,5 @@ class Slash(commands.Cog):
         await interaction.response.send_message(f"Hello {user.mention}!")
 
 
-
-
 async def setup(bot):
     await bot.add_cog(Slash(bot))

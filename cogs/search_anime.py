@@ -22,8 +22,9 @@ class Anime(commands.Cog):
             embed.add_field(
                 name=f"{i}. {item['title']}",
                 value=(
+                    f"ID: {item.get('id')}\n"
                     f"Episodes: {item.get('episodes', 'Unknown')}\n"
-                    f"ID: {item.get('id')}"
+                    f"Status: {item.get('status', 'Unknown')}\n"
                 ),
                 inline=False
             )

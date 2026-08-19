@@ -67,6 +67,7 @@ class AnimeSearch():
                 "title": items["title"]["english"],
                 "episodes": items["episodes"],
                 "id": items["id"],
+                "status": items["status"],
             }
             data_list.append(data_dict)
         return data_list

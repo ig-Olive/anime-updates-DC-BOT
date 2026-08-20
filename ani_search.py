@@ -18,7 +18,7 @@ query ($search: String) {
 }
 '''
 
-get_schedule = '''uery ($id: Int){ 
+get_schedule = '''query ($id: Int){ 
   Media (id: $id, type: ANIME) { 
     id
     title {
@@ -72,7 +72,7 @@ class AnimeSearch():
             data_list.append(data_dict)
         return data_list
 
-    def get_shedule(self, query):
+    def get_schedule(self, query):
         variables = {"id": int(query)}
 
         response = requests.post(

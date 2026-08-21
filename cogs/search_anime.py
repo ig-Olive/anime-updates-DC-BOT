@@ -43,12 +43,13 @@ class Anime(commands.Cog):
             title=f"Schedule for {ani_schedule['Media']['title']['english']}",
             description=f"Next Episode: {ani_schedule['Media']['nextAiringEpisode']['episode']}\n"
                         f"Airing At: {datetime.fromtimestamp(ani_schedule['Media']['nextAiringEpisode']['airingAt']).strftime("%B %d, %Y - %I:%M %p")}",
+            color=discord.Color.red()
         )
         for item in ani_schedule['Media']['airingSchedule']['nodes']:
             embed.add_field(
                 name=f"Episode: {item['episode']}",
                 value=(
-                    f"Airing At: {datetime.fromtimestamp(item['airingAt']).strftime("%B %d, %Y - %I:%M %p")}"
+                    f"{datetime.fromtimestamp(item['airingAt']).strftime("%B %d, %Y - %I:%M %p")}"
                 ),
                 inline=False
             )

@@ -6,14 +6,6 @@ class General(commands.Cog):
         self.bot = bot
 
     @commands.command()
-    async def ping(self, ctx):
-        await ctx.send("Pong!")
-
-    @commands.command()
-    async def say(self, ctx, *, text):
-        await ctx.send(text)
-
-    @commands.command()
     async def info(self, ctx):
         embed = discord.Embed(
             title="Bot Info",

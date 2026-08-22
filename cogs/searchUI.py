@@ -35,22 +35,27 @@ class AnimeButton(discord.ui.Button):
             button_type=discord.ButtonStyle.secondary
         super().__init__(label=title, style=button_type, row=row)
         self.anime_id = anime_id
+        self.title = title
 
     async def callback(self, interaction: discord.Interaction):
         ani_schedule = AS.get_schedule(self.anime_id)
+        schedule = ani_schedule['Media']['airingSchedule']['nodes']
         embed = discord.Embed(
             title=f"Schedule for {ani_schedule['Media']['title']['english']}",
             description=f"Next Episode: **{ani_schedule['Media']['nextAiringEpisode']['episode']}**\n"
                         f"Airing At: **{datetime.fromtimestamp(ani_schedule['Media']['nextAiringEpisode']['airingAt']).strftime('%B %d - %I:%M %p')}**",
             color=discord.Color.red()
         )
-        for item in ani_schedule['Media']['airingSchedule']['nodes']:
+        for item in schedule:
             embed.add_field(
                 name=f"Episode: {item['episode']} - {datetime.fromtimestamp(item['airingAt']).strftime('%B %d')}\n",
                 value="\n",
                 inline=False
             )
-        await interaction.response.edit_message(embed=embed,view=None)
+        await interaction.response.edit_message(
+            embed=embed,
+            view=ScheduleView(schedule=schedule, title=self.title)
+        )
 
 
 class AnimeView(discord.ui.View):
@@ -58,4 +63,22 @@ class AnimeView(discord.ui.View):
         super().__init__()
         for index ,ani in enumerate(result):
             self.add_item(AnimeButton(ani['id'], ani['title'], status=ani.get('status', 'Unknown'), row=index))
+
+
+
+#ADD to schedule list this will save the schedule somewhere
+class AddScheduleButton(discord.ui.Button):
+    def __init__(self, schedule, title):
+        super().__init__(label="Add to Schedule",style=discord.ButtonStyle.success)
+        self.schedule = schedule
+        self.title = title
+
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.send_message(f"Added {self.title} to your schedule!", ephemeral=True)
+
+
+class ScheduleView(discord.ui.View):
+    def __init__(self, schedule, title):
+        super().__init__()
+        self.add_item(AddScheduleButton(schedule, title))
 

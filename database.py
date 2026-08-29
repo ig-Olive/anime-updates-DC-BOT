@@ -1,7 +1,8 @@
 from sqlalchemy import create_engine, ForeignKey
 from sqlalchemy import Column, Integer, String, Boolean
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.orm import sessionmaker, declarative_base, relationship
 
+import os
 
 
 Base = declarative_base()
@@ -19,6 +20,8 @@ class Anime(Base):
     title = Column(String, nullable=False)
     status = Column(String)
 
+    episodes = relationship("Episode", back_populates="anime")
+
 class Episode(Base):
     __tablename__ = "episodes"
     id = Column(Integer, primary_key=True)
@@ -27,13 +30,19 @@ class Episode(Base):
     airing_at = Column(Integer, nullable=False) #unix timestamp
     notified = Column(Boolean, default=False)
 
+    anime = relationship("Anime", back_populates="episodes")
+
 class TrackedAnime(Base):
     __tablename__ = "tracked_anime"
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     anime_id = Column(Integer, ForeignKey("anime.id"), nullable=False)
 
+    anime = relationship("Anime")
 
+
+folder = "data"
+os.makedirs(folder, exist_ok=True)
 engine = create_engine("sqlite:///data/data.db")
 Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
@@ -85,4 +94,12 @@ def track_anime(session, discord_id, anilist_id, title, status, schedule):
         )
         session.add(tracked)
         session.commit()
+
+def get_user_tracked_list(session,discord_id):
+    user = session.query(User).filter_by(discord_id=str(discord_id)).first()
+    if user is None:
+        return []
+    tracked = session.query(TrackedAnime).filter_by(user_id=user.id).all()
+    return [t.anime for t in tracked]
+
 

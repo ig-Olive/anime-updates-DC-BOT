@@ -3,7 +3,11 @@ from discord import app_commands
 from discord.ext import commands
 from ani_search import AnimeSearch
 from datetime import datetime
+from database import track_anime, Session
+
 AS = AnimeSearch()
+
+
 
 class Anime(commands.Cog):
     def __init__(self, bot):
@@ -36,6 +40,7 @@ class AnimeButton(discord.ui.Button):
         super().__init__(label=title, style=button_type, row=row)
         self.anime_id = anime_id
         self.title = title
+        self.status = status
 
     async def callback(self, interaction: discord.Interaction):
         ani_schedule = AS.get_schedule(self.anime_id)
@@ -54,7 +59,7 @@ class AnimeButton(discord.ui.Button):
             )
         await interaction.response.edit_message(
             embed=embed,
-            view=ScheduleView(schedule=schedule, title=self.title)
+            view=ScheduleView(schedule=schedule, title=self.title, anilist_id=self.anime_id, status=self.status )
         )
 
 
@@ -68,17 +73,23 @@ class AnimeView(discord.ui.View):
 
 #ADD to schedule list this will save the schedule somewhere
 class AddScheduleButton(discord.ui.Button):
-    def __init__(self, schedule, title):
+    def __init__(self, schedule, title, anilist_id, status):
         super().__init__(label="Add to Schedule",style=discord.ButtonStyle.success)
         self.schedule = schedule
         self.title = title
+        self.anilist_id = anilist_id
+        self.status = status
 
     async def callback(self, interaction: discord.Interaction):
+        discord_id = interaction.user.id
+        session = Session()
+        track_anime(session, discord_id=discord_id, anilist_id=self.anilist_id, title=self.title, status=self.status, schedule=self.schedule)
+        session.close()
         await interaction.response.send_message(f"Added {self.title} to your schedule!", ephemeral=True)
 
 
 class ScheduleView(discord.ui.View):
-    def __init__(self, schedule, title):
+    def __init__(self, schedule, title, anilist_id, status):
         super().__init__()
-        self.add_item(AddScheduleButton(schedule, title))
+        self.add_item(AddScheduleButton(schedule, title, anilist_id, status))
 

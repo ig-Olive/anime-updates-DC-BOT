@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine, ForeignKey
 from sqlalchemy import Column, Integer, String, Boolean
 from sqlalchemy.orm import sessionmaker, declarative_base, relationship
-
+from datetime import datetime
 import os
 
 
@@ -100,6 +100,28 @@ def get_user_tracked_list(session,discord_id):
     if user is None:
         return []
     tracked = session.query(TrackedAnime).filter_by(user_id=user.id).all()
-    return [t.anime for t in tracked]
+    return tracked
+
+
+def get_next_episode(anime):
+    now = datetime.now().timestamp()
+    upcoming = [ep for ep in anime.episodes if ep.airing_at > now]
+    if not upcoming:
+        return None
+
+    upcoming.sort(key=lambda ep: ep.airing_at)
+    return upcoming[0]
+
+
+def delete_anime_tracking(session,discord_id, anime_id):
+    tracking_user_id = session.query(User).filter_by(discord_id=str(discord_id)).first()
+    if tracking_user_id is None:
+        return
+
+    anime_tracking_to_delete = session.query(TrackedAnime).filter_by(user_id=tracking_user_id.id,anime_id=anime_id).first()
+    session.delete(anime_tracking_to_delete)
+    session.commit()
+
+
 
 

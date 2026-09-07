@@ -18,7 +18,9 @@ class Anime(commands.Cog):
     @app_commands.describe(anime="Name of the anime to search for")
     async def search(self, interaction: discord.Interaction, anime: str):
         await interaction.response.defer()
+        print("searching...")
         ani_data = AS.search_anime(anime)
+        print("search completed")
         if not len(ani_data) == 0:
             await interaction.followup.send(view=AnimeView(result=ani_data))
         else:

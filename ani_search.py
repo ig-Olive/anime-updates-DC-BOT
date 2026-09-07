@@ -51,8 +51,7 @@ class AnimeSearch():
 
         response = requests.post(
             API_URL,
-            json={"query": search_query, "variables": variables
-            }
+            json={"query": search_query, "variables": variables},
         )
 
         response.raise_for_status()

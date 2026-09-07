@@ -101,4 +101,3 @@ class AnimeListView(discord.ui.View):
                     row=index,
                 )
             )
-

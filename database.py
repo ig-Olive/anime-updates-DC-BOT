@@ -39,6 +39,7 @@ class TrackedAnime(Base):
     anime_id = Column(Integer, ForeignKey("anime.id"), nullable=False)
 
     anime = relationship("Anime")
+    user = relationship("User")
 
 
 folder = "data"
@@ -71,12 +72,15 @@ def get_or_create_anime(session, anilist_id, title, status):
 def save_episodes(session, anime, episode_list):
     # clear out old episodes for this anime first (in case of /update refresh)
     session.query(Episode).filter_by(anime_id=anime.id).delete()
+    now = datetime.now().timestamp()
+
 
     for ep in episode_list:
         episode = Episode(
             anime_id=anime.id,
             episode_number=ep["episode"],
             airing_at=ep["airingAt"],
+            notified=ep["airingAt"] <=now, # already aired -> True, future -> False
         )
         session.add(episode)
 
@@ -123,5 +127,23 @@ def delete_anime_tracking(session,discord_id, anime_id):
     session.commit()
 
 
+def get_due_notifications(session):
+    now = datetime.now().timestamp()
+    due_episodes = session.query(Episode).filter(
+        Episode.airing_at <= now,
+        Episode.notified == False,
+    ).all()
 
+    results = []
+    for episode in due_episodes:
+        trackers = session.query(TrackedAnime).filter_by(anime_id=episode.anime_id).all()
+        for t in trackers:
+            results.append({
+                "discord_id": t.user.discord_id,
+                "anime_title": episode.anime.title,
+                "episode_number": episode.episode_number,
+            })
+        episode.notified = True
 
+    session.commit()
+    return results

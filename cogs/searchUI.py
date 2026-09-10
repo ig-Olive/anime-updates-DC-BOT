@@ -53,12 +53,12 @@ class AnimeButton(discord.ui.Button):
         embed = discord.Embed(
             title=f"Schedule for {ani_schedule['Media']['title']['english']}",
             description=f"Next Episode: **{ani_schedule['Media']['nextAiringEpisode']['episode']}**\n"
-                        f"Airing At: **{datetime.fromtimestamp(ani_schedule['Media']['nextAiringEpisode']['airingAt']).strftime('%B %d - %I:%M %p')}**",
+                        f"Airing At: **<t:{ani_schedule['Media']['nextAiringEpisode']['airingAt']}:F>**",
             color=discord.Color.red()
         )
         for item in schedule:
             embed.add_field(
-                name=f"Episode: {item['episode']} - {datetime.fromtimestamp(item['airingAt']).strftime('%B %d')}\n",
+                name=f"Episode: {item['episode']} - <t:{item['airingAt']}:F>\n",
                 value="\n",
                 inline=False
             )

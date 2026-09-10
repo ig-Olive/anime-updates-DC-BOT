@@ -38,7 +38,7 @@ class Utility(commands.Cog):
 
             if next_ep:
 
-                when = datetime.fromtimestamp(next_ep.airing_at).strftime('%B %d - %I:%M %p')
+                when = f"<t:{next_ep.airing_at}:F>"
                 next_ep_text = f"Next Episode: {next_ep.episode_number} — {when}"
 
             else:

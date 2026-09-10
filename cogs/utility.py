@@ -14,7 +14,7 @@ class Utility(commands.Cog):
 
 
     @app_commands.command(name="mylist", description="Show your tracked anime list")
-    async def mylist(self, interaction: discord.Interaction, ctx):
+    async def mylist(self, interaction: discord.Interaction):
         await interaction.response.defer()
 
         session = Session()
@@ -50,7 +50,7 @@ class Utility(commands.Cog):
                 value=f"Status: {anime.status}\n{next_ep_text}",
                 inline=False,
             )
-            embed.set_footer(text=f"Requested by {ctx.author}", icon_url=ctx.author.display_avatar)
+            embed.set_footer(text=f"Requested by {interaction.user.name}", icon_url=interaction.user.display_avatar.url)
         await interaction.followup.send(embed=embed)
         session.close()
 

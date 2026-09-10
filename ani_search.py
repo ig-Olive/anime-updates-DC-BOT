@@ -48,17 +48,17 @@ class AnimeSearch():
     def search_anime(self, query):
 
         variables = {"search": query}
+        try:
+            response = requests.post(
+                API_URL,
+                json={"query": search_query, "variables": variables},
+            )
 
-        response = requests.post(
-            API_URL,
-            json={"query": search_query, "variables": variables},
-        )
-
-        response.raise_for_status()
+            response.raise_for_status()
+        except requests.exceptions.HTTPError:
+            return None
 
         data = response.json()
-        if "errors" in data:
-            raise Exception(data["errors"])
 
         data_list = []
         for items in data["data"]["Page"]["media"]:
@@ -74,12 +74,15 @@ class AnimeSearch():
     def get_schedule(self, query):
         variables = {"id": int(query)}
 
-        response = requests.post(
-            API_URL,
-            json={"query": get_schedule, "variables": variables
-            }
-        )
-        response.raise_for_status()
+        try:
+            response = requests.post(
+                API_URL,
+                json={"query": get_schedule, "variables": variables
+                }
+            )
+            response.raise_for_status()
+        except requests.exceptions.HTTPError:
+            return None
 
         data = response.json()
         if "errors" in data:

@@ -1,4 +1,5 @@
 from discord.ext import commands, tasks
+import discord
 from database import Session, get_due_notifications
 
 class Notifications(commands.Cog):
@@ -14,9 +15,12 @@ class Notifications(commands.Cog):
 
         for notice in due:
             user = await self.bot.fetch_user(int(notice["discord_id"]))
-            await user.send(
-                f"📺 **{notice['anime_title']}** — Episode {notice['episode_number']} just aired!"
+            embed = discord.Embed(
+                title=f"New Episode Released!",
+                description=f"**{notice['anime_title']}**\nEpisode {notice['episode_number']} just aired!",
+                color=discord.Color.gold()
             )
+            await user.send(embed=embed)
 
     @check_notifications.before_loop
     async def before_check(self):

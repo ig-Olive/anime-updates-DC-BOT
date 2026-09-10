@@ -1,7 +1,7 @@
 import discord
 from discord import app_commands
 from discord.ext import commands
-from datetime import datetime
+
 
 
 
@@ -14,7 +14,7 @@ class Utility(commands.Cog):
 
 
     @app_commands.command(name="mylist", description="Show your tracked anime list")
-    async def mylist(self, interaction: discord.Interaction):
+    async def mylist(self, interaction: discord.Interaction, ctx):
         await interaction.response.defer()
 
         session = Session()
@@ -50,6 +50,7 @@ class Utility(commands.Cog):
                 value=f"Status: {anime.status}\n{next_ep_text}",
                 inline=False,
             )
+            embed.set_footer(text=f"Requested by {ctx.author}", icon_url=ctx.author.display_avatar)
         await interaction.followup.send(embed=embed)
         session.close()
 

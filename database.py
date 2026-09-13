@@ -99,6 +99,12 @@ def track_anime(session, discord_id, anilist_id, title, status, schedule):
         session.add(tracked)
         session.commit()
 
+def update_anime(session,anilist_id, title, status, schedule):
+    anime = get_or_create_anime(session, anilist_id, title, status)
+    save_episodes(session, anime=anime, episode_list=schedule)
+
+
+
 def get_user_tracked_list(session,discord_id):
     user = session.query(User).filter_by(discord_id=str(discord_id)).first()
     if user is None:

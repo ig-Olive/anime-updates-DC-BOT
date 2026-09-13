@@ -1,11 +1,14 @@
 import discord
 from discord import app_commands
 from discord.ext import commands
+from ani_search import AnimeSearch
+
+AS = AnimeSearch()
 
 
 
 
-from database import Session, get_user_tracked_list, get_next_episode, delete_anime_tracking
+from database import Session, get_user_tracked_list, get_next_episode, delete_anime_tracking, update_anime
 
 
 class Utility(commands.Cog):
@@ -70,6 +73,23 @@ class Utility(commands.Cog):
 
         await interaction.followup.send(view=AnimeListView(tracked))
 
+    @app_commands.command(name="update", description="Update an anime")
+    async def update(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+        session = Session()
+        tracked_out = get_user_tracked_list(session, interaction.user.id)
+        tracked = [t.anime for t in tracked_out]
+        session.close()
+
+        if not tracked:
+            await interaction.followup.send("You're not tracking any anime yet!")
+            return
+
+        await interaction.followup.send(view=AnimeListUpdateView(tracked))
+
+
+
+
 
 
 
@@ -99,6 +119,56 @@ class AnimeListView(discord.ui.View):
                 AnimeListButton(
                     title=f"{anime.title}",
                     anime_id=anime.id,
+                    row=index,
+                )
+            )
+
+class AnimeListUpdateButton(discord.ui.Button):
+    def __init__(self, title, anilist_id,status,row):
+        super().__init__(label=title,style=discord.ButtonStyle.blurple,row=row)
+        self.anilist_id = anilist_id
+        self.title = title
+        self.status = status
+
+    async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+        session = Session()
+        ani_schedule = AS.get_schedule(self.anilist_id)
+        schedule = ani_schedule['Media']['airingSchedule']['nodes']
+        update_anime(session,self.anilist_id,self.title,self.status,schedule)
+
+        embed = discord.Embed(
+            title=f"Schedule for {ani_schedule['Media']['title']['english']}",
+            description=f"Next Episode: **{ani_schedule['Media']['nextAiringEpisode']['episode']}**\n"
+                        f"Airing At: **<t:{ani_schedule['Media']['nextAiringEpisode']['airingAt']}:F>**",
+            color=discord.Color.red()
+        )
+
+        for item in schedule:
+            embed.add_field(
+                name=f"Episode: {item['episode']} - <t:{item['airingAt']}:F>\n",
+                value="\n",
+                inline=False
+            )
+        print("sending update message")
+        await interaction.edit_original_response(embed=embed, view=None)
+        await interaction.followup.send(content=f"{self.title} has been updated.")
+
+
+
+
+
+
+class AnimeListUpdateView(discord.ui.View):
+    def __init__(self,tracked):
+        super().__init__()
+        for index , anime in enumerate(tracked):
+
+            self.add_item(
+                AnimeListUpdateButton(
+                    title=f"{anime.title}",
+                    anilist_id=anime.anilist_id,
+                    status=anime.status,
                     row=index,
                 )
             )

@@ -2,7 +2,6 @@ import discord
 from discord import app_commands
 from discord.ext import commands
 from ani_search import AnimeSearch
-from datetime import datetime
 from database import track_anime, Session
 
 AS = AnimeSearch()
@@ -48,6 +47,7 @@ class AnimeButton(discord.ui.Button):
         self.status = status
 
     async def callback(self, interaction: discord.Interaction):
+        await interaction.response.defer()
         ani_schedule = AS.get_schedule(self.anime_id)
         schedule = ani_schedule['Media']['airingSchedule']['nodes']
         embed = discord.Embed(
@@ -62,7 +62,7 @@ class AnimeButton(discord.ui.Button):
                 value="\n",
                 inline=False
             )
-        await interaction.response.edit_message(
+        await interaction.edit_original_response(
             embed=embed,
             view=ScheduleView(schedule=schedule, title=self.title, anilist_id=self.anime_id, status=self.status )
         )

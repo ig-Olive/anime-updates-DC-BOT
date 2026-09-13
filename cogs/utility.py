@@ -150,7 +150,6 @@ class AnimeListUpdateButton(discord.ui.Button):
                 value="\n",
                 inline=False
             )
-        print("sending update message")
         await interaction.edit_original_response(embed=embed, view=None)
         await interaction.followup.send(content=f"{self.title} has been updated.")
 

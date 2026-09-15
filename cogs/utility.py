@@ -25,8 +25,6 @@ class Utility(commands.Cog):
 
         tracked = [t.anime for t in tracked_out]
 
-
-
         if not tracked:
             await interaction.followup.send("You're not tracking any anime yet!")
             return
@@ -53,10 +51,68 @@ class Utility(commands.Cog):
                 value=f"Status: {anime.status}\n{next_ep_text}",
                 inline=False,
             )
-            embed.set_footer(text=f"Requested by {interaction.user.name}", icon_url=interaction.user.display_avatar.url)
+        embed.set_footer(text=f"Requested by {interaction.user.name}", icon_url=interaction.user.display_avatar.url)
         await interaction.followup.send(embed=embed)
         session.close()
 
+    # get upcoming episodes
+    @app_commands.command(name="upcoming", description="Show Upcoming episode")
+    async def upcoming(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+
+        session = Session()
+        tracked_out = get_user_tracked_list(session, interaction.user.id)
+
+        tracked = [t.anime for t in tracked_out]
+
+        if not tracked:
+            await interaction.followup.send("You're not tracking any anime yet!")
+            return
+        next_episodes_list = []
+
+        for anime in tracked:
+            next_ep = get_next_episode(anime)
+            if next_ep:
+                next_ep_dict = {
+                    "title": anime.title,
+                    "airing_at": next_ep.airing_at,
+                    "ep_num": next_ep.episode_number
+                }
+                next_episodes_list.append(next_ep_dict)
+            else:
+                next_ep_dict = {
+                    "title": anime.title,
+                    "airing_at": None,
+                    "ep_num": None
+                }
+                next_episodes_list.append(next_ep_dict)
+
+        next_episodes_list_sorted = sorted(
+            next_episodes_list,
+            key=lambda x: x["airing_at"] if x["airing_at"] is not None else float("inf")
+        )
+
+        embed = discord.Embed(
+            title="Upcoming Episode",
+            colour=discord.Colour.green(),
+        )
+
+        for anime in next_episodes_list_sorted:
+            if anime["ep_num"]:
+                when = f"<t:{anime["airing_at"]}:F>"
+                next_ep_text = f"Next Episode: {anime["ep_num"]} — {when}"
+            else:
+                next_ep_text = "No upcoming episodes"
+
+            embed.add_field(
+                name=anime["title"],
+                value=f"{next_ep_text}",
+                inline=False,
+            )
+        embed.set_footer(text=f"Requested by {interaction.user.name}",
+                         icon_url=interaction.user.display_avatar.url)
+        await interaction.followup.send(embed=embed)
+        session.close()
 
     @app_commands.command(name="untrack", description="Untrack an anime")
     async def untrack(self, interaction: discord.Interaction):

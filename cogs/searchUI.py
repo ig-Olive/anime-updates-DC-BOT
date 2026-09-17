@@ -17,15 +17,24 @@ class Anime(commands.Cog):
     @app_commands.describe(anime="Name of the anime to search for")
     async def search(self, interaction: discord.Interaction, anime: str):
         await interaction.response.defer()
-        ani_data = AS.search_anime(anime)
+        ani_data = await AS.search_anime(anime)
 
         if ani_data is None:
             await interaction.followup.send("⚠️ AniList seems to be down right now. Try again in a bit.")
             return
-        
+
         if not len(ani_data) == 0:
-            await interaction.followup.send(view=AnimeView(result=ani_data))
+            view = AnimeView(result=ani_data)
+            print("view created")
+            print(f"buttons: {len(view.children)}")
+            await interaction.followup.send(
+                content="**Search results**",
+                view=view
+            )
+
+            print("view sent")
         else:
+            print("no anime")
             await interaction.followup.send("No anime found. :(")
 
 
@@ -39,6 +48,8 @@ class AnimeButton(discord.ui.Button):
     def __init__(self, anime_id, title,status, row):
         if status == "RELEASING":
             button_type=discord.ButtonStyle.success
+        elif status == "NOT_YET_RELEASED":
+            button_type=discord.ButtonStyle.primary
         else:
             button_type=discord.ButtonStyle.secondary
         super().__init__(label=title, style=button_type, row=row)
@@ -48,7 +59,7 @@ class AnimeButton(discord.ui.Button):
 
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.defer()
-        ani_schedule = AS.get_schedule(self.anime_id)
+        ani_schedule = await AS.get_schedule(self.anime_id)
         schedule = ani_schedule['Media']['airingSchedule']['nodes']
         embed = discord.Embed(
             title=f"Schedule for {ani_schedule['Media']['title']['english']}",

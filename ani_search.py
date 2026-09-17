@@ -1,4 +1,4 @@
-import requests
+import aiohttp
 
 API_URL = "https://graphql.anilist.co"
 
@@ -45,25 +45,26 @@ get_schedule = '''query ($id: Int){
 class AnimeSearch():
     def __init__(self):
         pass
-    def search_anime(self, query):
-
+    async def search_anime(self, query):
         variables = {"search": query}
         try:
-            response = requests.post(
-                API_URL,
-                json={"query": search_query, "variables": variables},
-            )
-
-            response.raise_for_status()
-        except requests.exceptions.HTTPError:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                        API_URL,
+                        json={"query": search_query, "variables": variables},
+                        timeout=aiohttp.ClientTimeout(total=10)
+                ) as response:
+                    response.raise_for_status()
+                    data = await response.json()
+        except aiohttp.ClientResponseError:
             return None
-
-        data = response.json()
+        except aiohttp.ClientError:
+            return None
 
         data_list = []
         for items in data["data"]["Page"]["media"]:
             data_dict = {
-                "title": items["title"]["english"],
+                "title": items["title"]["english"] or items["title"]["romaji"] or items["title"]["native"] or "Unknown Anime",
                 "episodes": items["episodes"],
                 "id": items["id"],
                 "status": items["status"],
@@ -71,22 +72,25 @@ class AnimeSearch():
             data_list.append(data_dict)
         return data_list
 
-    def get_schedule(self, query):
+    async def get_schedule(self, query):
         variables = {"id": int(query)}
 
         try:
-            response = requests.post(
-                API_URL,
-                json={"query": get_schedule, "variables": variables
-                }
-            )
-            response.raise_for_status()
-        except requests.exceptions.HTTPError:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    API_URL,
+                    json={"query": get_schedule, "variables": variables},
+                    timeout=aiohttp.ClientTimeout(total=10)
+                ) as response:
+                    response.raise_for_status()
+                    data = await response.json()
+        except aiohttp.ClientResponseError:
             return None
-
-        data = response.json()
+        except aiohttp.ClientError:
+            return None
         if "errors" in data:
             raise Exception(data["errors"])
 
         return data["data"]
+
 

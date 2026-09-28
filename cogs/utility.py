@@ -189,25 +189,36 @@ class AnimeListUpdateButton(discord.ui.Button):
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.defer()
         session = Session()
-        ani_schedule = AS.get_schedule(self.anilist_id)
+
+        ani_schedule = await AS.get_schedule(self.anilist_id)
+
         schedule = ani_schedule['Media']['airingSchedule']['nodes']
+
         update_anime(session,self.anilist_id,self.title,self.status,schedule)
 
+        next_ep = ani_schedule['Media']['nextAiringEpisode']
+
+        if next_ep:
+            episode_text = f"Next Episode: **{next_ep['episode']}**\nAiring At: **<t:{next_ep['airingAt']}:F>**"
+        else:
+            episode_text = "This anime has finished airing."
+
         embed = discord.Embed(
-            title=f"Schedule for {ani_schedule['Media']['title']['english']}",
-            description=f"Next Episode: **{ani_schedule['Media']['nextAiringEpisode']['episode']}**\n"
-                        f"Airing At: **<t:{ani_schedule['Media']['nextAiringEpisode']['airingAt']}:F>**",
+            title=f"Schedule for {ani_schedule['Media']['title']['english'] or ani_schedule['Media']['title']['romaji']}",
+            description=episode_text,
             color=discord.Color.red()
         )
-
+        print("embed heading")
         for item in schedule:
             embed.add_field(
                 name=f"Episode: {item['episode']} - <t:{item['airingAt']}:F>\n",
                 value="\n",
                 inline=False
             )
+        print("sending msg")
         await interaction.edit_original_response(embed=embed, view=None)
         await interaction.followup.send(content=f"{self.title} has been updated.")
+        print("finished")
 
 
 
